@@ -2,11 +2,15 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -29,7 +33,12 @@ func NewDatabase() (*Database, error) {
 		log.Fatal(err.Error())
 		return nil, err
 	}
+	runMigration()
 	return &Database{pool: pool}, nil
+}
+
+func (d *Database) Conn() *pgxpool.Pool {
+	return d.pool
 }
 
 func (d *Database) Close() {
@@ -47,4 +56,23 @@ func getURI() string {
 		dbPort = 5432
 	}
 	return fmt.Sprintf("host=%s port=%v user=%s dbname=%s password=%s", dbHost, dbPort, dbUser, dbName, dbPass)
+}
+
+func runMigration() {
+	db, err := sql.Open("postgres", getURI())
+	if err != nil {
+		log.Fatal(err)
+	}
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://infra/database/migrations",
+		"postgres", driver)
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.Steps(2)
+	db.Close()
 }

@@ -7,7 +7,7 @@ import (
 
 const (
 	minNameLength = 4
-	maxNameLength = 50
+	maxNameLength = 31
 )
 
 var (
@@ -22,15 +22,23 @@ type Name struct {
 }
 
 func NewName(firstName string, lastName string) (Name, error) {
-	fullName := firstName + lastName
+	fullName := fmt.Sprintf("%s %s", firstName, lastName)
 	if !(len(fullName) >= minNameLength && len(fullName) <= maxNameLength) || fullName == "" {
 		return Name{}, fmt.Errorf("invalid name, must be with 20 charcters and non-empty")
 	}
 	return Name{firstName, lastName}, nil
 }
 
+func (n Name) FirstName() string {
+	return n.firstName
+}
+
+func (n Name) LastName() string {
+	return n.lastName
+}
+
 func (n Name) FullName() string {
-	return string(n.firstName + n.lastName)
+	return fmt.Sprintf("%s %s", n.firstName, n.lastName)
 }
 
 func (n Name) Equals(n2 Name) bool {

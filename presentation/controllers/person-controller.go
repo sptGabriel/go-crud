@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/sptGabriel/go-ddd/domain/entities"
+	"github.com/sptGabriel/go-ddd/domain/commands"
 	valueObjects "github.com/sptGabriel/go-ddd/domain/value-objects"
+	"github.com/sptGabriel/go-ddd/infra/commandBus"
 	"github.com/sptGabriel/go-ddd/utils"
 )
 
@@ -17,14 +18,15 @@ type createPersonDTO struct {
 }
 
 type PersonController struct {
-	name string
+	commandBus commandBus.CommandBus
+	name       string
 }
 
-func NewPersonController(name string) *PersonController {
-	return &PersonController{name}
+func NewPersonController(name string, cb commandBus.CommandBus) *PersonController {
+	return &PersonController{name: name, commandBus: cb}
 }
 
-func (*PersonController) CreateNewPerson(ctx *fiber.Ctx) error {
+func (ctr *PersonController) CreateNewPerson(ctx *fiber.Ctx) error {
 	var dto createPersonDTO
 	if err := ctx.BodyParser(&dto); err != nil {
 		return utils.CtxError(ctx, http.StatusUnprocessableEntity, err)
@@ -41,8 +43,12 @@ func (*PersonController) CreateNewPerson(ctx *fiber.Ctx) error {
 	if err != nil {
 		return utils.CtxError(ctx, http.StatusUnprocessableEntity, err)
 	}
-	person := entities.NewPerson(name, email, password)
-	return ctx.Status(http.StatusOK).JSON("a")
+	command := commands.CreatePersonCommand(commands.CreatePersonCommand{Name: name, Email: email, Password: password})
+	value, fail := ctr.commandBus.Publish(command)
+	if fail != nil {
+		return utils.CtxError(ctx, fail.Code, fail.Error)
+	}
+	return ctx.Status(http.StatusOK).JSON(value)
 }
 
 func (*PersonController) GetPerson(ctx *fiber.Ctx) error {

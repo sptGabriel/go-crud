@@ -10,12 +10,8 @@ var (
 	ErrEmail = errors.New("email: could not use invalid email")
 )
 
-type email struct {
-	Address string `json: "email"`
-}
-
 type Email struct {
-	email
+	address string
 }
 
 func NewEmail(address string) (Email, error) {
@@ -23,16 +19,15 @@ func NewEmail(address string) (Email, error) {
 	if !isValid {
 		return Email{}, ErrEmail
 	}
-	email := email{Address: address}
-	return Email{email}, nil
+	return Email{address}, nil
 }
 
 func (e Email) Value() string {
-	return e.email.Address
+	return e.address
 }
 
 func (e Email) Format() string {
-	return strings.TrimSpace(strings.ToLower(e.email.Address))
+	return strings.TrimSpace(strings.ToLower(e.Value()))
 }
 
 func (e Email) Equals(e2 Email) bool {

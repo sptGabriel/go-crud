@@ -1,19 +1,30 @@
 package commandBus
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
+)
+
+var (
+	InvalidHandlerERR = errors.New("this handler doenst exists on handlers map")
 )
 
 type Command interface {
 }
 
 type CommandHandler interface {
-	Handle(Command) error
+	Handle(Command) (result interface{}, err *CommandHandlerError)
 }
 
 type CommandBus struct {
 	handlersMap map[string]CommandHandler
+}
+
+type CommandHandlerError struct {
+	Error   error
+	Code    int
+	Message string
 }
 
 func NewCommandBus() CommandBus {
@@ -30,11 +41,11 @@ func (cb *CommandBus) RegisterHandler(c Command, ch CommandHandler) error {
 	return nil
 }
 
-func (cb CommandBus) Publish(c Command) (interface{}, error) {
+func (cb CommandBus) Publish(c Command) (interface{}, *CommandHandlerError) {
 	cmdName := reflect.TypeOf(c).String()
 	ch, ok := cb.handlersMap[cmdName]
 	if !ok {
-		return nil, fmt.Errorf("there not any CommandHandler associate to Command %s", cmdName)
+		return nil, &CommandHandlerError{Error: InvalidHandlerERR, Code: 500}
 	}
-	return ch.Handle(c), nil
+	return ch.Handle(c)
 }
