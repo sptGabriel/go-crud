@@ -1,9 +1,9 @@
 package commands
 
-import valueObjects "github.com/sptGabriel/go-ddd/domain/value-objects"
+import person "github.com/sptGabriel/go-ddd/domain/entities"
 
 type CreatePersonCommand struct {
-	Name     valueObjects.Name
-	Email    valueObjects.Email
-	Password valueObjects.Password
+	Name     person.Name
+	Email    person.Email
+	Password person.Password
 }

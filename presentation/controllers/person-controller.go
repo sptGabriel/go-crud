@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/sptGabriel/go-ddd/domain/commands"
-	valueObjects "github.com/sptGabriel/go-ddd/domain/value-objects"
+	cmd "github.com/sptGabriel/go-ddd/domain/commands"
+	person "github.com/sptGabriel/go-ddd/domain/entities"
 	"github.com/sptGabriel/go-ddd/infra/commandBus"
 	"github.com/sptGabriel/go-ddd/utils"
 )
@@ -31,21 +31,21 @@ func (ctr *PersonController) CreateNewPerson(ctx *fiber.Ctx) error {
 	if err := ctx.BodyParser(&dto); err != nil {
 		return utils.CtxError(ctx, http.StatusUnprocessableEntity, err)
 	}
-	email, err := valueObjects.NewEmail(dto.Email)
+	email, err := person.NewEmail(dto.Email)
 	if err != nil {
 		return utils.CtxError(ctx, http.StatusUnprocessableEntity, err)
 	}
-	name, err := valueObjects.NewName(dto.FirstName, dto.LastName)
+	name, err := person.NewName(dto.FirstName, dto.LastName)
 	if err != nil {
 		return utils.CtxError(ctx, http.StatusUnprocessableEntity, err)
 	}
-	password, err := valueObjects.NewPassword(dto.Password)
+	password, err := person.NewPassword(dto.Password)
 	if err != nil {
 		return utils.CtxError(ctx, http.StatusUnprocessableEntity, err)
 	}
-	command := commands.CreatePersonCommand(commands.CreatePersonCommand{Name: name, Email: email, Password: password})
+	command := cmd.CreatePersonCommand(cmd.CreatePersonCommand{Name: name, Email: email, Password: password})
 	value, fail := ctr.commandBus.Publish(command)
-	if fail != nil {
+	if value == nil {
 		return utils.CtxError(ctx, fail.Code, fail.Error)
 	}
 	return ctx.Status(http.StatusOK).JSON(value)

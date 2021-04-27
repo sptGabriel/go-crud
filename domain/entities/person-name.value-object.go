@@ -1,6 +1,7 @@
-package valueObjects
+package person
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -43,4 +44,20 @@ func (n Name) FullName() string {
 
 func (n Name) Equals(n2 Name) bool {
 	return n.FullName() == n2.FullName()
+}
+
+func (n *Name) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+	}{
+		FirstName: n.FirstName(),
+		LastName:  n.LastName(),
+	})
+}
+
+func (n *Name) UnmarshalText(firstName string, lastName string) error {
+	var err error
+	*n, err = NewName(firstName, lastName)
+	return err
 }

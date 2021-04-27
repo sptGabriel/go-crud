@@ -1,6 +1,7 @@
-package valueObjects
+package person
 
 import (
+	"encoding/json"
 	"errors"
 	"net/mail"
 	"strings"
@@ -11,7 +12,7 @@ var (
 )
 
 type Email struct {
-	address string
+	value string
 }
 
 func NewEmail(address string) (Email, error) {
@@ -23,7 +24,7 @@ func NewEmail(address string) (Email, error) {
 }
 
 func (e Email) Value() string {
-	return e.address
+	return e.value
 }
 
 func (e Email) Format() string {
@@ -32,6 +33,16 @@ func (e Email) Format() string {
 
 func (e Email) Equals(e2 Email) bool {
 	return e.Value() == e2.Value()
+}
+
+func (e *Email) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.Value())
+}
+
+func (n *Email) UnmarshalText(d string) error {
+	var err error
+	*n, err = NewEmail(d)
+	return err
 }
 
 func valid(email string) bool {

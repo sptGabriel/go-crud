@@ -7,18 +7,18 @@ import (
 )
 
 var (
-	InvalidHandlerERR = errors.New("this handler doenst exists on handlers map")
+	ERRInvalidHandler = errors.New("this handler doenst exists on handlers map")
 )
 
 type Command interface {
 }
 
 type CommandHandler interface {
-	Handle(Command) (result interface{}, err *CommandHandlerError)
+	Execute(Command) interface{}
 }
 
 type CommandBus struct {
-	handlersMap map[string]CommandHandler
+	handlersMap map[reflect.Type]CommandHandler
 }
 
 type CommandHandlerError struct {
@@ -28,24 +28,22 @@ type CommandHandlerError struct {
 }
 
 func NewCommandBus() CommandBus {
-	return CommandBus{handlersMap: make(map[string]CommandHandler)}
+	return CommandBus{handlersMap: make(map[reflect.Type]CommandHandler)}
 }
 
-func (cb *CommandBus) RegisterHandler(c Command, ch CommandHandler) error {
-	cmdName := reflect.TypeOf(c).String()
-	_, has := cb.handlersMap[cmdName]
+func (cb *CommandBus) RegisterHandler(c reflect.Type, ch CommandHandler) error {
+	_, has := cb.handlersMap[c]
 	if has {
-		return fmt.Errorf("the Command %s is already register", cmdName)
+		return fmt.Errorf("Command is already register")
 	}
-	cb.handlersMap[cmdName] = ch
+	cb.handlersMap[c] = ch
 	return nil
 }
 
-func (cb CommandBus) Publish(c Command) (interface{}, *CommandHandlerError) {
-	cmdName := reflect.TypeOf(c).String()
-	ch, ok := cb.handlersMap[cmdName]
+func (cb CommandBus) Publish(c Command) interface{} {
+	cmdType := reflect.TypeOf(c)
+	ch, ok := cb.handlersMap[cmdType]
 	if !ok {
-		return nil, &CommandHandlerError{Error: InvalidHandlerERR, Code: 500}
 	}
-	return ch.Handle(c)
+	return ch.Execute(c)
 }

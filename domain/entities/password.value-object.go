@@ -1,6 +1,7 @@
-package valueObjects
+package person
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -34,6 +35,16 @@ func (p Password) Value() string {
 
 func (p Password) Equals(p2 Password) bool {
 	return p.value == p2.value
+}
+
+func (p *Password) UnmarshalText(pwd string) error {
+	var err error
+	*p, err = NewPassword(pwd)
+	return err
+}
+
+func (e *Password) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.Value())
 }
 
 func (p Password) ComparePassword(v string) bool {

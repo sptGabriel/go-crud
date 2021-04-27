@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -10,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/sptGabriel/go-ddd/application/handlers"
-	"github.com/sptGabriel/go-ddd/domain/commands"
+	cmd "github.com/sptGabriel/go-ddd/domain/commands"
 	"github.com/sptGabriel/go-ddd/infra/commandBus"
 	"github.com/sptGabriel/go-ddd/infra/database"
 	repositoriesImpl "github.com/sptGabriel/go-ddd/infra/repositories"
@@ -21,7 +22,7 @@ import (
 func initHandlers(c commandBus.CommandBus, conn *pgxpool.Pool) {
 	personRepository := repositoriesImpl.NewPersonRepository(conn)
 	createPersonHandler := handlers.NewCreatePersonCommandHandler(personRepository)
-	c.RegisterHandler(commands.CreatePersonCommand{}, createPersonHandler)
+	c.RegisterHandler(reflect.TypeOf(cmd.CreatePersonCommand{}), createPersonHandler)
 }
 
 func initRouter(c commandBus.CommandBus, a *fiber.App) {
@@ -36,6 +37,30 @@ func init() {
 		log.Fatal("error loading .env file")
 	}
 }
+
+//func unMarshTest() {
+//	var unmarshelPerson person.Person
+//	email, err := personVO.NewEmail("test@gmail.com")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	name, err := personVO.NewName("firstName", "lastName")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	password, err := personVO.NewPassword("Pwd1234567u")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	person := person.NewPerson(name, email, password)
+//	marshelPerson, err := json.Marshal(person)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	err = json.Unmarshal(marshelPerson, &unmarshelPerson)
+//	fmt.Println(err)
+//	fmt.Println(unmarshelPerson, "unmarshel Person")
+//}
 
 func main() {
 	db, err := database.NewDatabase()
