@@ -4,16 +4,22 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	person "github.com/sptGabriel/go-ddd/domain/entities"
+	"github.com/sptGabriel/go-ddd/application/errors"
+	"github.com/sptGabriel/go-ddd/domain/person"
 )
 
 type PersonRepository struct {
 	conn *pgxpool.Pool
 }
+
+var (
+	ErrPersonNotFound = fmt.Errorf("person not found")
+)
 
 func NewPersonRepository(conn *pgxpool.Pool) PersonRepository {
 	return PersonRepository{conn: conn}
@@ -32,8 +38,21 @@ func (r *PersonRepository) Update(person *person.Person) error {
 	return fmt.Errorf("err")
 }
 
-func (r *PersonRepository) GetById(id string) (person *person.Person, err error) {
-	return nil, fmt.Errorf("err")
+func (r *PersonRepository) GetById(id string) (p *person.Person, err error) {
+	const op = "person.repository.getById"
+	qry := `select first_name, last_name, email, password from persons WHERE id = $1`
+	var person *person.Person
+	var firstName, lastName, mail, pwd string
+	err = r.conn.QueryRow(context.Background(), qry, id).
+		Scan(&firstName, &lastName, &mail, &pwd)
+	if err != nil && err != pgx.ErrNoRows {
+		return nil, errors.E(op, errors.ErrInternal)
+	}
+	notFound := err == pgx.ErrNoRows || os.IsNotExist(err)
+	if notFound {
+		return nil, errors.E(op, ErrPersonNotFound, errors.KindEntityNotFound)
+	}
+	return person, nil
 }
 
 func (r *PersonRepository) GetAll() (result []*person.Person, err error) {

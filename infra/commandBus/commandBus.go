@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	ERRInvalidHandler = errors.New("this handler doenst exists on handlers map")
+	ErrInvalidHandler = errors.New("this handler doenst exists on handlers map")
 )
 
 type Command interface {
 }
 
 type CommandHandler interface {
-	Execute(Command) interface{}
+	Execute(Command) (result interface{}, err error)
 }
 
 type CommandBus struct {
@@ -40,10 +40,11 @@ func (cb *CommandBus) RegisterHandler(c reflect.Type, ch CommandHandler) error {
 	return nil
 }
 
-func (cb CommandBus) Publish(c Command) interface{} {
+func (cb CommandBus) Publish(c Command) (result interface{}, err error) {
 	cmdType := reflect.TypeOf(c)
 	ch, ok := cb.handlersMap[cmdType]
 	if !ok {
+		return nil, ErrInvalidHandler
 	}
 	return ch.Execute(c)
 }

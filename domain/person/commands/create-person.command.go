@@ -1,6 +1,6 @@
-package commands
+package person_commands
 
-import person "github.com/sptGabriel/go-ddd/domain/entities"
+import "github.com/sptGabriel/go-ddd/domain/person"
 
 type CreatePersonCommand struct {
 	Name     person.Name
