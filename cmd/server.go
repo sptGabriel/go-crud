@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/sptGabriel/go-ddd/application/handlers"
-	cmd "github.com/sptGabriel/go-ddd/domain/commands"
+	person "github.com/sptGabriel/go-ddd/domain/person/commands"
 	"github.com/sptGabriel/go-ddd/infra/commandBus"
 	"github.com/sptGabriel/go-ddd/infra/database"
 	repositoriesImpl "github.com/sptGabriel/go-ddd/infra/repositories"
@@ -22,7 +22,7 @@ import (
 func initHandlers(c commandBus.CommandBus, conn *pgxpool.Pool) {
 	personRepository := repositoriesImpl.NewPersonRepository(conn)
 	createPersonHandler := handlers.NewCreatePersonCommandHandler(personRepository)
-	c.RegisterHandler(reflect.TypeOf(cmd.CreatePersonCommand{}), createPersonHandler)
+	c.RegisterHandler(reflect.TypeOf(person.CreatePersonCommand{}), createPersonHandler)
 }
 
 func initRouter(c commandBus.CommandBus, a *fiber.App) {

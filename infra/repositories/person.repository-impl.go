@@ -18,7 +18,7 @@ type PersonRepository struct {
 }
 
 var (
-	ErrPersonNotFound = fmt.Errorf("person not found")
+	ErrPersonNotFound = fmt.Errorf("The person was not found")
 )
 
 func NewPersonRepository(conn *pgxpool.Pool) PersonRepository {
@@ -39,7 +39,7 @@ func (r *PersonRepository) Update(person *person.Person) error {
 }
 
 func (r *PersonRepository) GetById(id string) (p *person.Person, err error) {
-	const op = "person.repository.getById"
+	const op errors.Op = "person.repository.getById"
 	qry := `select first_name, last_name, email, password from persons WHERE id = $1`
 	var person *person.Person
 	var firstName, lastName, mail, pwd string
@@ -50,7 +50,11 @@ func (r *PersonRepository) GetById(id string) (p *person.Person, err error) {
 	}
 	notFound := err == pgx.ErrNoRows || os.IsNotExist(err)
 	if notFound {
-		return nil, errors.E(op, ErrPersonNotFound, errors.KindEntityNotFound)
+		return nil, nil
+	}
+	person, err = r.unmarshalPerson(id, firstName, lastName, mail, pwd)
+	if err != nil {
+		return nil, errors.E(op, errors.ErrInternal)
 	}
 	return person, nil
 }

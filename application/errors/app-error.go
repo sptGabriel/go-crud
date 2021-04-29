@@ -4,17 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 )
-
-//type AppError struct {
-//	//	Error   error
-//	//	Message string
-//	//	Code    int
-//	//}
-
-//	//var (
-//	//	ErrInternal = errors.New("InternalError")
-//	//)
 
 type Op string
 
@@ -23,12 +14,12 @@ type Code int
 type Message string
 
 const (
-	KindNotFound       = http.StatusNotFound
-	KindUnauthorized   = http.StatusUnauthorized
-	KindUnprocessable  = http.StatusUnprocessableEntity
-	KindBadRequest     = http.StatusBadRequest
-	KindUnexpected     = http.StatusInternalServerError
-	KindEntityNotFound = http.StatusOK
+	KindNotFound       Code = http.StatusNotFound
+	KindUnauthorized   Code = http.StatusUnauthorized
+	KindUnprocessable  Code = http.StatusUnprocessableEntity
+	KindBadRequest     Code = http.StatusBadRequest
+	KindUnexpected     Code = http.StatusInternalServerError
+	KindEntityNotFound Code = http.StatusOK
 )
 
 var (
@@ -69,6 +60,16 @@ func GetCode(err error) Code {
 	}
 
 	return GetCode(e.Err)
+}
+
+func GetErrorMessage(err error) string {
+	e, ok := err.(*Error)
+	if !ok {
+		return "Internal Error"
+	}
+	msgarray := strings.Split(e.Error(), ":")
+	msg := msgarray[len(msgarray)-1]
+	return strings.Join(strings.Fields(strings.TrimSpace(msg)), " ")
 }
 
 func E(args ...interface{}) error {

@@ -1,30 +1,25 @@
 package commandBus
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/sptGabriel/go-ddd/application/errors"
 )
 
 var (
-	ErrInvalidHandler = errors.New("this handler doenst exists on handlers map")
+	ErrInvalidHandler = fmt.Errorf("this handler doenst exists on handlers map")
 )
 
 type Command interface {
 }
 
 type CommandHandler interface {
-	Execute(Command) (result interface{}, err error)
+	Execute(Command) (res interface{}, err error)
 }
 
 type CommandBus struct {
 	handlersMap map[reflect.Type]CommandHandler
-}
-
-type CommandHandlerError struct {
-	Error   error
-	Code    int
-	Message string
 }
 
 func NewCommandBus() CommandBus {
@@ -32,19 +27,21 @@ func NewCommandBus() CommandBus {
 }
 
 func (cb *CommandBus) RegisterHandler(c reflect.Type, ch CommandHandler) error {
+	const op = "commandBus.registerHandler"
 	_, has := cb.handlersMap[c]
 	if has {
-		return fmt.Errorf("Command is already register")
+		return errors.E(op, fmt.Errorf("handler already exists"), 500)
 	}
 	cb.handlersMap[c] = ch
 	return nil
 }
 
-func (cb CommandBus) Publish(c Command) (result interface{}, err error) {
+func (cb CommandBus) Publish(c Command) (interface{}, error) {
+	const op = "commandBus.publish"
 	cmdType := reflect.TypeOf(c)
 	ch, ok := cb.handlersMap[cmdType]
 	if !ok {
-		return nil, ErrInvalidHandler
+		return nil, errors.E(op, ErrInvalidHandler, 500)
 	}
 	return ch.Execute(c)
 }

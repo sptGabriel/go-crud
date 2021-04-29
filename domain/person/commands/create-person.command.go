@@ -1,4 +1,4 @@
-package person_commands
+package commands
 
 import "github.com/sptGabriel/go-ddd/domain/person"
 
