@@ -2,13 +2,15 @@ package person
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/mail"
 	"strings"
+
+	"github.com/sptGabriel/go-ddd/application/errors"
 )
 
 var (
-	ErrEmail = errors.New("email: could not use invalid email")
+	ErrEmail = fmt.Errorf("email: could not use invalid email")
 )
 
 type Email struct {
@@ -16,9 +18,10 @@ type Email struct {
 }
 
 func NewEmail(address string) (Email, error) {
+	var op errors.Op = "person.email"
 	isValid := valid(address)
 	if !isValid {
-		return Email{}, ErrEmail
+		return Email{}, errors.E(op, ErrEmail, errors.KindUnprocessable)
 	}
 	return Email{address}, nil
 }

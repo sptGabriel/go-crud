@@ -2,8 +2,9 @@ package person
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/sptGabriel/go-ddd/application/errors"
 )
 
 const (
@@ -12,9 +13,7 @@ const (
 )
 
 var (
-	ErrName     = errors.New("name: could not use invalid Name")
-	ErrTooShort = fmt.Errorf("%w: min length allowed is %d", ErrName, minNameLength)
-	ErrTooLong  = fmt.Errorf("%w: max length allowed is %d", ErrName, maxNameLength)
+	ErrName = fmt.Errorf("Value must be between %v and %v characters long", minNameLength, maxNameLength)
 )
 
 type Name struct {
@@ -23,9 +22,10 @@ type Name struct {
 }
 
 func NewName(firstName string, lastName string) (Name, error) {
+	var op errors.Op = "person.name"
 	fullName := fmt.Sprintf("%s %s", firstName, lastName)
 	if !(len(fullName) >= minNameLength && len(fullName) <= maxNameLength) || fullName == "" {
-		return Name{}, fmt.Errorf("invalid name, must be with 20 charcters and non-empty")
+		return Name{}, errors.E(op, ErrName, errors.KindUnprocessable)
 	}
 	return Name{firstName, lastName}, nil
 }

@@ -2,16 +2,21 @@ package person
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
+	"github.com/sptGabriel/go-ddd/application/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	minPasswordLength = 8
+)
+
 var (
-	minPasswordLength  = 8
-	ErrPassword        = errors.New("password: does not meet the minimum criteria")
-	ErrInvalidPassword = errors.New("password: does not match")
+	ErrPassword        = fmt.Errorf("does not meet the minimum criteria")
+	ErrPasswordMin     = fmt.Errorf("Value must be at least %v characters long", minPasswordLength)
+	ErrInvalidPassword = fmt.Errorf("password does not match")
+	ErrPasswordHash    = fmt.Errorf("error when generating the hash")
 )
 
 type Password struct {
@@ -19,12 +24,13 @@ type Password struct {
 }
 
 func NewPassword(p string) (Password, error) {
-	if len(p) < minPasswordLength || p == "" {
-		return Password{}, fmt.Errorf("invalid password, min 8 characters and non-empty")
+	var op errors.Op = "person.password"
+	if len(p) < minPasswordLength {
+		return Password{}, errors.E(op, ErrPasswordMin, errors.KindUnprocessable)
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost)
 	if err != nil {
-		return Password{}, errors.New("error when generating the hash")
+		return Password{}, errors.E(op, ErrPasswordHash, errors.KindUnexpected)
 	}
 	return Password{value: string(hash)}, nil
 }

@@ -83,7 +83,7 @@ func E(args ...interface{}) error {
 		case Code:
 			e.Code = arg
 		default:
-			panic("bad call to E")
+			return &Error{Op: "internal", Code: KindUnexpected, Err: ErrInternal}
 		}
 	}
 

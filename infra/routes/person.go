@@ -14,6 +14,6 @@ func NewPersonRoutes(personController *controllers.PersonController) Routes {
 }
 
 func (route *personRoutes) Init(app *fiber.App) {
-	app.Get("/person", route.personController.GetPerson)
+	app.Get("/person/:personId", route.personController.GetPerson)
 	app.Post("/person", route.personController.CreateNewPerson)
 }

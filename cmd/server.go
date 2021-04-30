@@ -22,6 +22,8 @@ import (
 func initHandlers(c commandBus.CommandBus, conn *pgxpool.Pool) {
 	personRepository := repositoriesImpl.NewPersonRepository(conn)
 	createPersonHandler := handlers.NewCreatePersonCommandHandler(personRepository)
+	getPersonHandler := handlers.NewGetPersonCommandHandler(personRepository)
+	c.RegisterHandler(reflect.TypeOf(person.GetPersonCommand{}), getPersonHandler)
 	c.RegisterHandler(reflect.TypeOf(person.CreatePersonCommand{}), createPersonHandler)
 }
 
